@@ -1,23 +1,36 @@
-import requests 
-import pandas as pd
+import requests
 from bs4 import BeautifulSoup
+import pandas as pd
 import time
 
-dados = []
+livros = []
+pagina = 1
 
-for pagina in range(1, 50):  # percorre 50 páginas
-    url = f"https://site.gov.br/dados?page={pagina}"
-    response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
+while True:
+    url = f"https://books.toscrape.com/catalogue/page-{pagina}.html"
+    response = requests.get(url)
+    
+    # quando acabar as páginas encerra o loop
+    if response.status_code != 200:
+        break
+    
     soup = BeautifulSoup(response.text, "html.parser")
     
-    # extrai os dados da página atual
-    registros = soup.find_all("div", class_="registro")
-    for r in registros:
-        dados.append({
-            "nome": r.find("span", class_="nome").text.strip(),
-            "valor": r.find("span", class_="valor").text.strip()
+    for livro in soup.find_all("article", class_="product_pod"):
+        titulo = livro.find("h3").find("a")["title"]
+        preco = livro.find("p", class_="price_color").text.strip()
+        avaliacao = livro.find("p", class_="star-rating")["class"][1]
+        
+        livros.append({
+            "titulo": titulo,
+            "preco": preco,
+            "avaliacao": avaliacao
         })
     
-    time.sleep(1)  # boa prática: não sobrecarregar o servidor
+    print(f"Página {pagina} coletada — {len(livros)} livros até agora")
+    pagina += 1
+    time.sleep(1)
 
-df = pd.DataFrame(dados)
+df = pd.DataFrame(livros)
+df.to_csv("livros.csv", index=False)
+print(f"{len(df)} livros salvos.")
