@@ -4,7 +4,7 @@ import time
 
 resultados = []
 
-for ano in range(2018, 2024):
+for ano in range(1990, 2025):
     pagina = 0
     
     while True:
@@ -44,5 +44,5 @@ for ano in range(2018, 2024):
         time.sleep(0.5)
 
 df = pd.DataFrame(resultados)
-df.to_csv("dados/f1_jolpica.csv", index=False)
+df.to_csv("databases/f1_jolpica.csv", index=False)
 print(f"\nPronto! {len(df)} registros salvos.")
