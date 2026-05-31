@@ -26,17 +26,18 @@ cols_drop = [
 df = df.drop(columns=[c for c in cols_drop if c in df.columns])
 df = df.rename(columns={"number_x": "number", "name_x": "race_name", "name_y": "constructor_name"})
 
-df["code"]        = df["code"].fillna(df["surname"].str[:3].str.upper())
-df["date"]        = pd.to_datetime(df["date"],  errors="coerce")
-df["dob"]         = pd.to_datetime(df["dob"],   errors="coerce")
-df["full_name"]   = (df["forename"].astype(str) + " " + df["surname"].astype(str)).str.strip()
-df["is_winner"]   = df["position"] == 1
-df["is_podium"]   = df["position"].between(1, 3)
-df["dnf"]         = df["position"].isna()
-df["decade"]      = (df["year"] // 10 * 10).astype(int).astype(str) + "s"
-df["age_at_race"] = ((df["date"] - df["dob"]).dt.days / 365.25).round().astype("Int64")
+df["code"]          = df["code"].fillna(df["surname"].str[:3].str.upper())
+df["date"]          = pd.to_datetime(df["date"],  errors="coerce")
+df["dob"]           = pd.to_datetime(df["dob"],   errors="coerce")
+df["full_name"]     = (df["forename"].astype(str) + " " + df["surname"].astype(str)).str.strip()
+df["is_winner"]     = df["position"] == 1
+df["is_podium"]     = df["position"].between(1, 3)
+df["dnf"]           = df["position"].isna()
+df["decade"]        = (df["year"] // 10 * 10).astype(int).astype(str) + "s"
+df["age_at_race"]   = ((df["date"] - df["dob"]).dt.days / 365.25).round().astype("Int64")
 df["nationality_x"] = df["nationality_x"].astype(str).str.strip().str.title()
 
+# KPIs
 n_temporadas      = df["year"].nunique()
 n_corridas        = df["raceId"].nunique()
 n_pilotos         = df["driverId"].nunique()
@@ -45,6 +46,8 @@ piloto_recordista = df[df["is_winner"]]["full_name"].value_counts().idxmax()
 equipe_recordista = str(df[df["is_winner"]]["constructor_name"].value_counts().idxmax())
 periodo           = f"{df['year'].min()} – {df['year'].max()}"
 
+
+# Figuras estáticas — Dashboard 1
 top_pilotos = (
     df[df["is_winner"]]
     .groupby("full_name").size()
@@ -96,9 +99,11 @@ fig_dnf = px.area(
 )
 fig_dnf.update_layout(template="plotly_white", margin=dict(l=10, r=10, t=40, b=10))
 
+# Opções para os filtros do Dashboard 2
 todas_equipes = df[df["is_winner"]]["constructor_name"].value_counts().index.tolist()
 top5_default  = todas_equipes[:5]
 
+# Helpers de layout
 SIDEBAR = {"width": "23%", "display": "inline-block", "verticalAlign": "top",
            "padding": "20px 16px", "backgroundColor": "#f0f2f5",
            "minHeight": "80vh", "boxSizing": "border-box"}
@@ -107,6 +112,15 @@ CONTEUDO = {"width": "75%", "display": "inline-block", "verticalAlign": "top",
             "padding": "16px 12px", "boxSizing": "border-box"}
 
 COL2 = {"width": "48%", "display": "inline-block", "verticalAlign": "top", "padding": "0 6px"}
+
+INSIGHT_STYLE = {
+    "fontSize": "13px", "color": "#444", "margin": "2px 8px 14px 8px",
+    "padding": "8px 12px", "backgroundColor": "#eef4fb",
+    "borderLeft": "3px solid #4a90d9", "borderRadius": "0 4px 4px 0",
+}
+
+def insight(texto):
+    return html.P(texto, style=INSIGHT_STYLE)
 
 def card_kpi(titulo, valor):
     return html.Div(
@@ -141,6 +155,7 @@ cabecalho = html.Div(
 )
 
 dashboard1 = html.Div([
+    # KPI cards
     html.Div(
         children=[
             card_kpi("Temporadas",        n_temporadas),
@@ -152,10 +167,14 @@ dashboard1 = html.Div([
         ],
         style={"textAlign": "center", "padding": "24px 24px 8px 24px"}
     ),
+
+    # linha 1
     linha2(
         dcc.Graph(id="d1-pilotos", figure=fig_pilotos),
         dcc.Graph(id="d1-equipes", figure=fig_equipes),
     ),
+
+    # linha 2
     linha2(
         dcc.Graph(id="d1-decada", figure=fig_decada),
         dcc.Graph(id="d1-dnf",    figure=fig_dnf),
@@ -165,7 +184,7 @@ dashboard1 = html.Div([
 dashboard2 = html.Div([
     html.Div(
         children=[
-            # sidebar de filtros
+            # sidebar
             html.Div([
                 html.H3("Filtros", style={"marginTop": "0", "color": "#1a1a2e"}),
 
@@ -189,35 +208,24 @@ dashboard2 = html.Div([
                     placeholder="Selecione equipes...",
                 ),
 
-                html.Br(),
+                html.Hr(style={"margin": "20px 0 12px 0", "borderColor": "#d0d0d0"}),
 
-                html.Label("Mostrar pilotos de:"),
-                dcc.RadioItems(
-                    id="radio-escopo-pilotos",
-                    options=[
-                        {"label": "Equipes selecionadas", "value": "filtrado"},
-                        {"label": "Todos os pilotos",     "value": "todos"},
-                    ],
-                    value="todos",
-                    labelStyle={"display": "block", "marginBottom": "6px"},
-                ),
+                html.H4("Achados do período", style={"margin": "0 0 10px 0", "color": "#1a1a2e", "fontSize": "14px"}),
+                html.Div(id="d2-achados"),
+
             ], style=SIDEBAR),
 
-            # área de gráficos
+            # gráficos
             html.Div([
-                # gráfico 1 — largura total
                 dcc.Graph(id="d2-linha-vitorias"),
 
-                # gráficos 2 e 3
                 linha2(
-                    dcc.Graph(id="d2-bar-pilotos"),
+                    dcc.Graph(id="d2-scatter-grid"),
                     dcc.Graph(id="d2-bar-equipes"),
                 ),
-
-                # gráficos 4 e 5
                 linha2(
                     dcc.Graph(id="d2-area-dnf"),
-                    dcc.Graph(id="d2-hist-idade"),
+                    dcc.Graph(id="d2-scatter-idade"),
                 ),
             ], style=CONTEUDO),
         ],
@@ -231,7 +239,7 @@ app.layout = html.Div(
         dcc.Tabs(
             value="tab-1",
             children=[
-                dcc.Tab(label="Visão Geral",          value="tab-1", children=[dashboard1]),
+                dcc.Tab(label="Visão Geral",           value="tab-1", children=[dashboard1]),
                 dcc.Tab(label="Exploração Interativa", value="tab-2", children=[dashboard2]),
             ],
             style={"fontFamily": "Arial, sans-serif"},
@@ -242,54 +250,54 @@ app.layout = html.Div(
 
 @app.callback(
     [Output("d2-linha-vitorias", "figure"),
-     Output("d2-bar-pilotos",    "figure"),
+     Output("d2-scatter-grid",   "figure"),
      Output("d2-bar-equipes",    "figure"),
      Output("d2-area-dnf",       "figure"),
-     Output("d2-hist-idade",     "figure")],
-    [Input("slider-anos",           "value"),
-     Input("dropdown-equipes",      "value"),
-     Input("radio-escopo-pilotos",  "value")],
+     Output("d2-scatter-idade",  "figure"),
+     Output("d2-achados",        "children")],
+    [Input("slider-anos",      "value"),
+     Input("dropdown-equipes", "value")],
 )
-def atualizar_dashboard2(anos, equipes, escopo_pilotos):
+def atualizar_dashboard2(anos, equipes):
     ano_min, ano_max = anos
     equipes = equipes or todas_equipes
 
-    dff     = df[(df["year"] >= ano_min) & (df["year"] <= ano_max)]
-    dff_eq  = dff[dff["constructor_name"].isin(equipes)]
+    dff    = df[(df["year"] >= ano_min) & (df["year"] <= ano_max)]
+    dff_eq = dff[dff["constructor_name"].isin(equipes)]
 
-    # gráfico 1 — vitórias por temporada para as equipes selecionadas (linha)
+    # gráfico 1 — vitórias por temporada (linha)
     vit_ano = (
         dff_eq[dff_eq["is_winner"]]
         .groupby(["year", "constructor_name"]).size()
         .reset_index(name="vitorias")
     )
     fig1 = px.line(
-        vit_ano, x="year", y="vitorias", color="constructor_name",
-        markers=True,
+        vit_ano, x="year", y="vitorias", color="constructor_name", markers=True,
         title=f"Vitórias por temporada — equipes selecionadas ({ano_min}–{ano_max})",
         labels={"year": "Temporada", "vitorias": "Vitórias", "constructor_name": "Equipe"},
     )
     fig1.update_layout(template="plotly_white", legend_title="Equipe",
                        margin=dict(l=10, r=10, t=40, b=10))
 
-    # gráfico 2 — top 15 pilotos por vitórias (barra horizontal)
-    base_pilotos = dff_eq if escopo_pilotos == "filtrado" else dff
-    top_p = (
-        base_pilotos[base_pilotos["is_winner"]]
-        .groupby("full_name").size()
-        .nlargest(15).reset_index(name="vitorias").sort_values("vitorias")
+    # gráfico 2 — grid vs posição final (scatter agregado, correlação do heatmap)
+    grid_pos = (
+        dff_eq[dff_eq["position"].notna()]
+        .groupby("grid")
+        .agg(media_posicao=("positionOrder", "mean"), corridas=("resultId", "count"))
+        .reset_index()
     )
-    titulo_p = "Top 15 pilotos" + (" (equipes selecionadas)" if escopo_pilotos == "filtrado" else "")
-    fig2 = px.bar(
-        top_p, x="vitorias", y="full_name", orientation="h",
-        title=f"{titulo_p} — {ano_min}–{ano_max}",
-        labels={"vitorias": "Vitórias", "full_name": "Piloto"},
-        color="vitorias", color_continuous_scale="Blues",
+    grid_pos = grid_pos[grid_pos["grid"].between(1, 20) & (grid_pos["corridas"] >= 10)]
+    corr_grid = round(grid_pos["grid"].corr(grid_pos["media_posicao"]), 2)
+    fig2 = px.scatter(
+        grid_pos, x="grid", y="media_posicao", size="corridas",
+        title=f"Grid vs Posição final média — correlação r = {corr_grid} ({ano_min}–{ano_max})",
+        labels={"grid": "Posição no grid", "media_posicao": "Posição final média", "corridas": "Corridas"},
+        color="media_posicao", color_continuous_scale="RdYlGn_r",
     )
     fig2.update_layout(template="plotly_white", coloraxis_showscale=False,
                        margin=dict(l=10, r=10, t=40, b=10))
 
-    # gráfico 3 — vitórias por equipe selecionada no período (barra vertical)
+    # gráfico 3 — vitórias por equipe (barra vertical)
     vit_eq = (
         dff_eq[dff_eq["is_winner"]]
         .groupby("constructor_name").size()
@@ -304,10 +312,8 @@ def atualizar_dashboard2(anos, equipes, escopo_pilotos):
     fig3.update_layout(template="plotly_white", coloraxis_showscale=False,
                        margin=dict(l=10, r=10, t=40, b=10))
 
-    # gráfico 4 — taxa de DNF por temporada no período (área)
-    dnf_periodo = (
-        dff.groupby("year")["dnf"].mean().mul(100).reset_index(name="taxa_dnf")
-    )
+    # gráfico 4 — taxa de DNF (área)
+    dnf_periodo = dff.groupby("year")["dnf"].mean().mul(100).reset_index(name="taxa_dnf")
     fig4 = px.area(
         dnf_periodo, x="year", y="taxa_dnf",
         title=f"Taxa de abandono (DNF) — {ano_min} a {ano_max}",
@@ -316,18 +322,43 @@ def atualizar_dashboard2(anos, equipes, escopo_pilotos):
     )
     fig4.update_layout(template="plotly_white", margin=dict(l=10, r=10, t=40, b=10))
 
-    # gráfico 5 — distribuição de idade dos vencedores no período (histograma)
-    venc = dff[dff["is_winner"]].dropna(subset=["age_at_race"])
-    fig5 = px.histogram(
-        venc, x="age_at_race", nbins=20,
-        title=f"Distribuição de idade dos vencedores ({ano_min}–{ano_max})",
-        labels={"age_at_race": "Idade na corrida", "count": "Vitórias"},
-        color_discrete_sequence=["#AB63FA"],
+    # gráfico 5 — idade vs pontos médios (scatter agregado, correlação fraca do heatmap)
+    idade_pts = (
+        dff_eq.dropna(subset=["age_at_race"])
+        .groupby("age_at_race")
+        .agg(media_pontos=("points", "mean"), corridas=("resultId", "count"))
+        .reset_index()
     )
-    fig5.update_layout(template="plotly_white", bargap=0.05,
+    idade_pts = idade_pts[
+        idade_pts["age_at_race"].between(18, 50) & (idade_pts["corridas"] >= 10)
+    ]
+    corr_idade = round(idade_pts["age_at_race"].corr(idade_pts["media_pontos"]), 2)
+    fig5 = px.scatter(
+        idade_pts, x="age_at_race", y="media_pontos", size="corridas",
+        title=f"Idade vs Pontos médios por corrida — correlação r = {corr_idade} ({ano_min}–{ano_max})",
+        labels={"age_at_race": "Idade na corrida", "media_pontos": "Pontos médios", "corridas": "Corridas"},
+        color="media_pontos", color_continuous_scale="Blues",
+    )
+    fig5.update_layout(template="plotly_white", coloraxis_showscale=False,
                        margin=dict(l=10, r=10, t=40, b=10))
 
-    return fig1, fig2, fig3, fig4, fig5
+    # insights dinâmicos
+    lider_eq  = vit_eq.iloc[0] if not vit_eq.empty else None
+    dnf_medio = dnf_periodo["taxa_dnf"].mean() if not dnf_periodo.empty else 0
+    dnf_tendencia = "queda" if dnf_periodo["taxa_dnf"].iloc[-1] < dnf_periodo["taxa_dnf"].iloc[0] else "alta"
+
+    achados = [
+        html.P(f"Líder: {lider_eq['constructor_name']} ({int(lider_eq['vitorias'])} vitórias)",
+               style={"margin": "4px 0", "fontSize": "13px"}) if lider_eq is not None else "",
+        html.P(f"Correlação grid/posição: r = {corr_grid}",
+               style={"margin": "4px 0", "fontSize": "13px"}),
+        html.P(f"Correlação idade/pontos: r = {corr_idade}",
+               style={"margin": "4px 0", "fontSize": "13px"}),
+        html.P(f"DNF médio: {dnf_medio:.1f}% ({dnf_tendencia} no período)",
+               style={"margin": "4px 0", "fontSize": "13px"}),
+    ]
+
+    return fig1, fig2, fig3, fig4, fig5, achados
 
 
 if __name__ == "__main__":
