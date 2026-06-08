@@ -4,13 +4,13 @@ from dash import Dash, html, dcc
 from dash.dependencies import Input, Output
 from pathlib import Path
 
-# ── Data ──────────────────────────────────────────────────────────────────────
+# Data
 DB = Path(__file__).parent.parent / "databases"
 na = ["\\N"]
 
-races        = pd.read_csv(DB / "races.csv",        na_values=na)
-results      = pd.read_csv(DB / "results.csv",      na_values=na)
-drivers      = pd.read_csv(DB / "drivers.csv",      na_values=na)
+races = pd.read_csv(DB / "races.csv", na_values=na)
+results = pd.read_csv(DB / "results.csv", na_values=na)
+drivers = pd.read_csv(DB / "drivers.csv", na_values=na)
 constructors = pd.read_csv(DB / "constructors.csv", na_values=na)
 
 races = races[races["year"] >= 1990]
@@ -27,35 +27,36 @@ cols_drop = [
 df = df.drop(columns=[c for c in cols_drop if c in df.columns])
 df = df.rename(columns={"number_x": "number", "name_x": "race_name", "name_y": "constructor_name"})
 
-df["code"]          = df["code"].fillna(df["surname"].str[:3].str.upper())
-df["date"]          = pd.to_datetime(df["date"],  errors="coerce")
-df["dob"]           = pd.to_datetime(df["dob"],   errors="coerce")
-df["full_name"]     = (df["forename"].astype(str) + " " + df["surname"].astype(str)).str.strip()
-df["is_winner"]     = df["position"] == 1
-df["is_podium"]     = df["position"].between(1, 3)
-df["dnf"]           = df["position"].isna()
-df["decade"]        = (df["year"] // 10 * 10).astype(int).astype(str) + "s"
-df["age_at_race"]   = ((df["date"] - df["dob"]).dt.days / 365.25).round().astype("Int64")
+df["code"] = df["code"].fillna(df["surname"].str[:3].str.upper())
+df["date"] = pd.to_datetime(df["date"], errors="coerce")
+df["dob"] = pd.to_datetime(df["dob"], errors="coerce")
+df["full_name"] = (df["forename"].astype(str) + " " + df["surname"].astype(str)).str.strip()
+df["is_winner"] = df["position"] == 1
+df["is_podium"] = df["position"].between(1, 3)
+df["dnf"] = df["position"].isna()
+df["decade"] = (df["year"] // 10 * 10).astype(int).astype(str) + "s"
+df["age_at_race"] = ((df["date"] - df["dob"]).dt.days / 365.25).round().astype("Int64")
 df["nationality_x"] = df["nationality_x"].astype(str).str.strip().str.title()
 
-# ── KPIs ──────────────────────────────────────────────────────────────────────
-n_temporadas      = df["year"].nunique()
-n_corridas        = df["raceId"].nunique()
-n_pilotos         = df["driverId"].nunique()
-n_equipes         = df["constructorId"].nunique()
+# KPIs
+n_temporadas = df["year"].nunique()
+n_corridas = df["raceId"].nunique()
+n_pilotos = df["driverId"].nunique()
+n_equipes = df["constructorId"].nunique()
 piloto_recordista = df[df["is_winner"]]["full_name"].value_counts().idxmax()
 equipe_recordista = str(df[df["is_winner"]]["constructor_name"].value_counts().idxmax())
-periodo           = f"{df['year'].min()}–{df['year'].max()}"
+periodo = f"{df['year'].min()}–{df['year'].max()}"
 
-# ── Tokens ────────────────────────────────────────────────────────────────────
-C_RED    = "#E8002D"
-C_DARK   = "#0D0D13"
-C_WHITE  = "#FFFFFF"
-C_BG     = "#F4F5F7"
-C_TEXT   = "#111827"
-C_MUTED  = "#6B7280"
+# Tokens
+C_RED = "#E8002D"
+C_DARK = "#0D0D13"
+C_WHITE = "#FFFFFF"
+C_BG = "#F4F5F7"
+C_TEXT = "#111827"
+C_MUTED = "#6B7280"
 C_BORDER = "#E5E7EB"
-FONT     = "Inter, -apple-system, BlinkMacSystemFont, sans-serif"
+FONT = "Inter, -apple-system, BlinkMacSystemFont, sans-serif"
+SCALE_QTD = [[0, "#FFD700"], [0.5, "#FF6B35"], [1, "#E8002D"]]
 
 CUSTOM_CSS = """
 * { box-sizing: border-box; }
@@ -118,13 +119,14 @@ CUSTOM_CSS = """
 }
 """
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 def apply_chart_style(fig):
     fig.update_layout(
         font_family=FONT,
         font_color=C_TEXT,
         title_font=dict(size=13, color="#1F2937", family=FONT),
         title_x=0,
+        title_pad=dict(l=12),
         plot_bgcolor=C_WHITE,
         paper_bgcolor=C_WHITE,
         margin=dict(l=16, r=16, t=48, b=16),
@@ -153,10 +155,10 @@ def chart_card(child, style=None):
     return html.Div(child, style=base)
 
 def card_kpi(titulo, valor):
-    v         = str(valor)
-    is_num    = v.replace(",", "").isdigit()
+    v = str(valor)
+    is_num = v.replace(",", "").isdigit()
     font_size = "26px" if len(v) <= 10 else "14px"
-    v_color   = C_RED if is_num else "#1F2937"
+    v_color = C_RED if is_num else "#1F2937"
     return html.Div([
         html.P(titulo, style={
             "margin": "0 0 10px 0", "fontSize": "10px", "color": C_MUTED,
@@ -193,7 +195,7 @@ def section_label(text):
         "fontWeight": "700", "textTransform": "uppercase", "letterSpacing": "0.8px",
     })
 
-# ── Static figures — Dashboard 1 ──────────────────────────────────────────────
+# Static figures - Dashboard 1
 top_pilotos = (
     df[df["is_winner"]]
     .groupby("full_name").size()
@@ -203,7 +205,7 @@ fig_pilotos = px.bar(
     top_pilotos, x="vitorias", y="full_name", orientation="h",
     title="Top 10 Pilotos — Vitórias (1990–2024)",
     labels={"vitorias": "Vitórias", "full_name": ""},
-    color="vitorias", color_continuous_scale="Blues",
+    color="vitorias", color_continuous_scale=SCALE_QTD,
 )
 fig_pilotos.update_layout(coloraxis_showscale=False)
 apply_chart_style(fig_pilotos)
@@ -217,7 +219,7 @@ fig_equipes = px.bar(
     top_equipes_d1, x="vitorias", y="constructor_name", orientation="h",
     title="Top 10 Equipes — Vitórias (1990–2024)",
     labels={"vitorias": "Vitórias", "constructor_name": ""},
-    color="vitorias", color_continuous_scale="Reds",
+    color="vitorias", color_continuous_scale=SCALE_QTD,
 )
 fig_equipes.update_layout(coloraxis_showscale=False)
 apply_chart_style(fig_equipes)
@@ -245,11 +247,11 @@ fig_dnf = px.area(
 )
 apply_chart_style(fig_dnf)
 
-# ── Filter options ─────────────────────────────────────────────────────────────
+# Filter options
 todas_equipes = df[df["is_winner"]]["constructor_name"].value_counts().index.tolist()
-top5_default  = todas_equipes[:5]
+top5_default = todas_equipes[:5]
 
-# ── App ────────────────────────────────────────────────────────────────────────
+# App
 app = Dash(
     __name__,
     external_stylesheets=[
@@ -276,7 +278,7 @@ app.index_string = f"""<!DOCTYPE html>
     </body>
 </html>"""
 
-# ── Nav bar ───────────────────────────────────────────────────────────────────
+# Nav bar
 nav_bar = html.Div([
     html.Div([
         html.Span(style={
@@ -293,13 +295,13 @@ nav_bar = html.Div([
     ], style={"display": "flex", "alignItems": "center"}),
 
     html.Div([
-        html.Span(periodo,               style={"color": "rgba(255,255,255,0.35)", "fontSize": "11px"}),
-        html.Span("  ·  ",              style={"color": "rgba(255,255,255,0.15)", "fontSize": "11px"}),
+        html.Span(periodo, style={"color": "rgba(255,255,255,0.35)", "fontSize": "11px"}),
+        html.Span("  ·  ", style={"color": "rgba(255,255,255,0.15)", "fontSize": "11px"}),
         html.Span(f"{n_corridas} corridas", style={"color": "rgba(255,255,255,0.35)", "fontSize": "11px"}),
-        html.Span("  ·  ",              style={"color": "rgba(255,255,255,0.15)", "fontSize": "11px"}),
-        html.Span(f"{n_pilotos} pilotos",  style={"color": "rgba(255,255,255,0.35)", "fontSize": "11px"}),
-        html.Span("  ·  ",              style={"color": "rgba(255,255,255,0.15)", "fontSize": "11px"}),
-        html.Span(f"{n_equipes} equipes",  style={"color": "rgba(255,255,255,0.35)", "fontSize": "11px"}),
+        html.Span("  ·  ", style={"color": "rgba(255,255,255,0.15)", "fontSize": "11px"}),
+        html.Span(f"{n_pilotos} pilotos", style={"color": "rgba(255,255,255,0.35)", "fontSize": "11px"}),
+        html.Span("  ·  ", style={"color": "rgba(255,255,255,0.15)", "fontSize": "11px"}),
+        html.Span(f"{n_equipes} equipes", style={"color": "rgba(255,255,255,0.35)", "fontSize": "11px"}),
     ], style={"display": "flex", "alignItems": "center"}),
 ], style={
     "display": "flex",
@@ -312,7 +314,7 @@ nav_bar = html.Div([
     "borderBottom": "1px solid rgba(255,255,255,0.05)",
 })
 
-# ── Layout constants ──────────────────────────────────────────────────────────
+# Layout constants
 SIDEBAR_STYLE = {
     "flexShrink": 0,
     "flexBasis": "22%",
@@ -328,16 +330,16 @@ CONTENT_STYLE = {
     "boxSizing": "border-box",
     "minWidth": 0,
 }
-TAB_STYLE    = {"backgroundColor": C_WHITE, "fontFamily": FONT}
+TAB_STYLE = {"backgroundColor": C_WHITE, "fontFamily": FONT}
 TAB_SELECTED = {"backgroundColor": C_WHITE, "fontFamily": FONT}
 
-# ── Dashboard 1 ───────────────────────────────────────────────────────────────
+# Dashboard 1
 dashboard1 = html.Div([
     html.Div([
-        card_kpi("Temporadas",        n_temporadas),
-        card_kpi("Corridas",          n_corridas),
-        card_kpi("Pilotos",           n_pilotos),
-        card_kpi("Equipes",           n_equipes),
+        card_kpi("Temporadas", n_temporadas),
+        card_kpi("Corridas", n_corridas),
+        card_kpi("Pilotos", n_pilotos),
+        card_kpi("Equipes", n_equipes),
         card_kpi("Piloto Recordista", piloto_recordista),
         card_kpi("Equipe Recordista", equipe_recordista),
     ], style={"display": "flex", "padding": "20px 14px 4px 14px", "backgroundColor": C_BG}),
@@ -349,11 +351,11 @@ dashboard1 = html.Div([
 
     html.Div([
         chart_card(dcc.Graph(id="d1-decada", figure=fig_decada), style={"flex": "1"}),
-        chart_card(dcc.Graph(id="d1-dnf",    figure=fig_dnf),    style={"flex": "1"}),
+        chart_card(dcc.Graph(id="d1-dnf", figure=fig_dnf), style={"flex": "1"}),
     ], style={"display": "flex", "padding": "0 8px 16px 8px", "backgroundColor": C_BG}),
 ], style={"backgroundColor": C_BG})
 
-# ── Dashboard 2 ───────────────────────────────────────────────────────────────
+# Dashboard 2
 dashboard2 = html.Div([
     html.Div([
         html.Div([
@@ -391,24 +393,25 @@ dashboard2 = html.Div([
             chart_card(dcc.Graph(id="d2-linha-vitorias")),
             html.Div([
                 chart_card(dcc.Graph(id="d2-scatter-grid"), style={"flex": "1"}),
-                chart_card(dcc.Graph(id="d2-bar-equipes"),  style={"flex": "1"}),
+                chart_card(dcc.Graph(id="d2-bar-equipes"), style={"flex": "1"}),
             ], style={"display": "flex"}),
             html.Div([
-                chart_card(dcc.Graph(id="d2-area-dnf"),      style={"flex": "1"}),
+                chart_card(dcc.Graph(id="d2-hist-idade"), style={"flex": "1"}),
                 chart_card(dcc.Graph(id="d2-scatter-idade"), style={"flex": "1"}),
             ], style={"display": "flex"}),
+            chart_card(dcc.Graph(id="d2-heatmap")),
         ], style=CONTENT_STYLE),
 
     ], style={"display": "flex", "minHeight": "80vh"}),
 ], style={"backgroundColor": C_BG})
 
-# ── Layout ────────────────────────────────────────────────────────────────────
+# Layout
 app.layout = html.Div([
     nav_bar,
     dcc.Tabs(
         value="tab-1",
         children=[
-            dcc.Tab(label="Visão Geral",           value="tab-1",
+            dcc.Tab(label="Visão Geral", value="tab-1",
                     children=[dashboard1],
                     style=TAB_STYLE, selected_style=TAB_SELECTED),
             dcc.Tab(label="Exploração Interativa", value="tab-2",
@@ -420,22 +423,23 @@ app.layout = html.Div([
 ], style={"fontFamily": FONT, "backgroundColor": C_BG, "minHeight": "100vh"})
 
 
-# ── Callback ──────────────────────────────────────────────────────────────────
+# Callback
 @app.callback(
     [Output("d2-linha-vitorias", "figure"),
-     Output("d2-scatter-grid",   "figure"),
-     Output("d2-bar-equipes",    "figure"),
-     Output("d2-area-dnf",       "figure"),
-     Output("d2-scatter-idade",  "figure"),
-     Output("d2-achados",        "children")],
-    [Input("slider-anos",      "value"),
+     Output("d2-scatter-grid", "figure"),
+     Output("d2-bar-equipes", "figure"),
+     Output("d2-hist-idade", "figure"),
+     Output("d2-scatter-idade", "figure"),
+     Output("d2-heatmap", "figure"),
+     Output("d2-achados", "children")],
+    [Input("slider-anos", "value"),
      Input("dropdown-equipes", "value")],
 )
 def atualizar_dashboard2(anos, equipes):
     ano_min, ano_max = anos
     equipes = equipes or todas_equipes
 
-    dff    = df[(df["year"] >= ano_min) & (df["year"] <= ano_max)]
+    dff = df[(df["year"] >= ano_min) & (df["year"] <= ano_max)]
     dff_eq = dff[dff["constructor_name"].isin(equipes)]
 
     vit_ano = (
@@ -477,18 +481,23 @@ def atualizar_dashboard2(anos, equipes):
         vit_eq, x="constructor_name", y="vitorias",
         title=f"Vitórias por Equipe — {ano_min}–{ano_max}",
         labels={"constructor_name": "", "vitorias": "Vitórias"},
-        color="vitorias", color_continuous_scale="Reds",
+        color="vitorias", color_continuous_scale=SCALE_QTD,
     )
     fig3.update_layout(coloraxis_showscale=False)
     apply_chart_style(fig3)
 
-    dnf_periodo = dff.groupby("year")["dnf"].mean().mul(100).reset_index(name="taxa_dnf")
-    fig4 = px.area(
-        dnf_periodo, x="year", y="taxa_dnf",
-        title=f"Taxa de Abandono (DNF) — {ano_min}–{ano_max}",
-        labels={"year": "Temporada", "taxa_dnf": "DNF (%)"},
-        color_discrete_sequence=[C_RED],
+    vit_idade = (
+        dff_eq[dff_eq["is_winner"] & dff_eq["age_at_race"].notna()]
+        .groupby("age_at_race").size()
+        .reset_index(name="vitorias")
     )
+    fig4 = px.bar(
+        vit_idade, x="age_at_race", y="vitorias",
+        title=f"Vitórias por Idade — {ano_min}–{ano_max}",
+        labels={"age_at_race": "Idade", "vitorias": "Vitórias"},
+        color="vitorias", color_continuous_scale=SCALE_QTD,
+    )
+    fig4.update_layout(coloraxis_showscale=False)
     apply_chart_style(fig4)
 
     idade_pts = (
@@ -505,23 +514,35 @@ def atualizar_dashboard2(anos, equipes):
         idade_pts, x="age_at_race", y="media_pontos", size="corridas",
         title=f"Idade vs Pontos Médios  ·  r = {corr_idade}",
         labels={"age_at_race": "Idade", "media_pontos": "Pontos médios", "corridas": "Corridas"},
-        color="media_pontos", color_continuous_scale="Blues",
+        color="media_pontos", color_continuous_scale=SCALE_QTD,
     )
     fig5.update_layout(coloraxis_showscale=False)
     apply_chart_style(fig5)
 
-    lider_eq      = vit_eq.iloc[0] if not vit_eq.empty else None
-    dnf_medio     = dnf_periodo["taxa_dnf"].mean() if not dnf_periodo.empty else 0
-    dnf_tendencia = "queda" if dnf_periodo["taxa_dnf"].iloc[-1] < dnf_periodo["taxa_dnf"].iloc[0] else "alta"
+    cols_corr = ["grid", "positionOrder", "points", "age_at_race", "laps"]
+    labels_corr = ["Grid", "Posição Final", "Pontos", "Idade", "Voltas"]
+    corr_data = dff_eq[cols_corr].dropna().corr().round(2)
+    fig6 = px.imshow(
+        corr_data,
+        x=labels_corr, y=labels_corr,
+        color_continuous_scale="RdBu_r",
+        zmin=-1, zmax=1,
+        title=f"Correlação entre Variáveis — {ano_min}–{ano_max}",
+        text_auto=True,
+    )
+    apply_chart_style(fig6)
+
+    lider_eq = vit_eq.iloc[0] if not vit_eq.empty else None
+    pico_idade = int(vit_idade.loc[vit_idade["vitorias"].idxmax(), "age_at_race"]) if not vit_idade.empty else "—"
 
     achados = [
         insight(f"Líder: {lider_eq['constructor_name']} — {int(lider_eq['vitorias'])} vitórias") if lider_eq is not None else "",
         insight(f"Correlação grid → posição: r = {corr_grid}"),
         insight(f"Correlação idade → pontos: r = {corr_idade}"),
-        insight(f"DNF médio: {dnf_medio:.1f}% ({dnf_tendencia} no período)"),
+        insight(f"Idade com mais vitórias: {pico_idade} anos"),
     ]
 
-    return fig1, fig2, fig3, fig4, fig5, achados
+    return fig1, fig2, fig3, fig4, fig5, fig6, achados
 
 
 if __name__ == "__main__":
