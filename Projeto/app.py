@@ -49,12 +49,12 @@ periodo = f"{df['year'].min()}–{df['year'].max()}"
 
 # Tokens
 C_RED = "#E8002D"
-C_DARK = "#0D0D13"
-C_WHITE = "#FFFFFF"
-C_BG = "#F4F5F7"
-C_TEXT = "#111827"
-C_MUTED = "#6B7280"
-C_BORDER = "#E5E7EB"
+C_DARK = "#0A0D14"
+C_WHITE = "#1A2235"
+C_BG = "#111722"
+C_TEXT = "#F1F5F9"
+C_MUTED = "#94A3B8"
+C_BORDER = "#2D3748"
 FONT = "Inter, -apple-system, BlinkMacSystemFont, sans-serif"
 SCALE_QTD = [[0, "#FFD700"], [0.5, "#FF6B35"], [1, "#E8002D"]]
 
@@ -62,90 +62,71 @@ CUSTOM_CSS = """
 * { box-sizing: border-box; }
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 10px; }
 
 .tab-parent {
-    background: transparent !important;
-    border-bottom: 1px solid #E5E7EB !important;
-    padding: 0 16px !important;
+    background: #111722 !important;
+    border-bottom: 1px solid #2D3748 !important;
+    padding: 0 8px !important;
     display: flex !important;
 }
-.tab {
-    font-family: 'Inter', -apple-system, sans-serif !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    color: #9CA3AF !important;
-    border: none !important;
-    border-bottom: 2px solid transparent !important;
-    background: #FFFFFF !important;
-    padding: 13px 20px !important;
-    cursor: pointer !important;
-    transition: color 0.18s !important;
-    letter-spacing: 0.1px !important;
-}
-.tab:hover { color: #374151 !important; }
-.tab--selected {
-    color: #E8002D !important;
-    border-bottom: 2px solid #E8002D !important;
-    font-weight: 600 !important;
-    background: #FFFFFF !important;
+.tab { cursor: pointer !important; transition: color 0.18s, background 0.18s !important; }
+.tab:hover { color: #F1F5F9 !important; background: #1A2235 !important; }
+
+:root {
+    --Dash-Fill-Interactive-Strong: #E8002D;
+    --Dash-Fill-Interactive-Weak: rgba(232,0,45,0.12);
+    --Dash-Fill-Inverse-Strong: #1A2235;
+    --Dash-Text-Primary: #F1F5F9;
+    --Dash-Text-Strong: #F1F5F9;
+    --Dash-Text-Weak: #94A3B8;
+    --Dash-Text-Disabled: #64748B;
+    --Dash-Stroke-Strong: #2D3748;
+    --Dash-Stroke-Weak: rgba(45,55,72,0.3);
+    --Dash-Fill-Primary-Hover: rgba(232,0,45,0.08);
+    --Dash-Fill-Primary-Active: rgba(232,0,45,0.15);
+    --Dash-Fill-Disabled: #2D3748;
+    --Dash-Shading-Strong: rgba(0,0,0,0.5);
+    --Dash-Shading-Weak: rgba(0,0,0,0.3);
 }
 
-.rc-slider-handle,
-.rc-slider-handle:hover,
-.rc-slider-handle:active,
-.rc-slider-handle-dragging {
-    border-color: #E8002D !important;
-    background-color: #E8002D !important;
-    box-shadow: 0 0 0 5px rgba(232,0,45,0.1) !important;
-    opacity: 1 !important;
-}
-.rc-slider-track { background-color: #E8002D !important; height: 3px !important; }
-.rc-slider-rail  { background-color: #E5E7EB !important; height: 3px !important; }
+.dash-dropdown-option:hover { background-color: #2D3748 !important; }
+.dash-dropdown-option[data-selected] { background-color: rgba(232,0,45,0.15) !important; }
 
-.Select--multi .Select-value {
-    background-color: rgba(232,0,45,0.07) !important;
-    border-color: rgba(232,0,45,0.2) !important;
-    border-radius: 4px !important;
-    color: #B50024 !important;
-    font-size: 11px !important;
-}
-.Select--multi .Select-value-icon {
-    border-right-color: rgba(232,0,45,0.2) !important;
-    color: #B50024 !important;
-}
-.Select--multi .Select-value-icon:hover {
-    background: rgba(232,0,45,0.12) !important;
-}
+.dash-slider-tooltip { color: #F1F5F9 !important; background-color: #1A2235 !important; border-color: #2D3748 !important; }
+.dash-range-slider-input { color: #F1F5F9 !important; background-color: #1A2235 !important; border: 1px solid #2D3748 !important; border-radius: 4px !important; }
 """
 
 # Helpers
 def apply_chart_style(fig):
     fig.update_layout(
-        font_family=FONT,
-        font_color=C_TEXT,
-        title_font=dict(size=13, color="#1F2937", family=FONT),
+        font=dict(family=FONT, color=C_TEXT, size=18),
+        title_font=dict(size=22, color=C_TEXT, family=FONT),
         title_x=0,
         title_pad=dict(l=12),
         plot_bgcolor=C_WHITE,
         paper_bgcolor=C_WHITE,
-        margin=dict(l=16, r=16, t=48, b=16),
+        margin=dict(l=16, r=16, t=64, b=16),
         legend=dict(bgcolor="rgba(0,0,0,0)", borderwidth=0,
-                    font=dict(size=11, color=C_MUTED)),
+                    font=dict(size=17, color=C_TEXT)),
+        coloraxis_colorbar=dict(
+            tickfont=dict(color=C_TEXT, size=15),
+            title_font=dict(color=C_TEXT, size=16),
+        ),
     )
-    fig.update_xaxes(gridcolor="#F3F4F6", linecolor=C_BORDER, zeroline=False,
-                     tickfont=dict(color=C_MUTED, size=10),
-                     title_font=dict(color=C_MUTED, size=11))
-    fig.update_yaxes(gridcolor="#F3F4F6", linecolor=C_BORDER, zeroline=False,
-                     tickfont=dict(color=C_MUTED, size=10),
-                     title_font=dict(color=C_MUTED, size=11))
+    fig.update_xaxes(gridcolor=C_BORDER, linecolor=C_BORDER, zeroline=False,
+                     tickfont=dict(color=C_TEXT, size=16),
+                     title_font=dict(color=C_TEXT, size=18))
+    fig.update_yaxes(gridcolor=C_BORDER, linecolor=C_BORDER, zeroline=False,
+                     tickfont=dict(color=C_TEXT, size=16),
+                     title_font=dict(color=C_TEXT, size=18))
     return fig
 
 def chart_card(child, style=None):
     base = {
         "backgroundColor": C_WHITE,
         "borderRadius": "14px",
-        "boxShadow": "0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.06)",
+        "boxShadow": "0 2px 8px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3)",
         "overflow": "hidden",
         "margin": "8px",
         "border": f"1px solid {C_BORDER}",
@@ -157,11 +138,11 @@ def chart_card(child, style=None):
 def card_kpi(titulo, valor):
     v = str(valor)
     is_num = v.replace(",", "").isdigit()
-    font_size = "26px" if len(v) <= 10 else "14px"
-    v_color = C_RED if is_num else "#1F2937"
+    font_size = "38px" if len(v) <= 10 else "20px"
+    v_color = C_RED if is_num else C_TEXT
     return html.Div([
         html.P(titulo, style={
-            "margin": "0 0 10px 0", "fontSize": "10px", "color": C_MUTED,
+            "margin": "0 0 10px 0", "fontSize": "14px", "color": C_MUTED,
             "letterSpacing": "1px", "textTransform": "uppercase", "fontWeight": "600",
         }),
         html.Div(v, style={
@@ -175,14 +156,14 @@ def card_kpi(titulo, valor):
         "textAlign": "center",
         "flex": "1",
         "margin": "0 5px",
-        "boxShadow": "0 1px 3px rgba(0,0,0,0.05), 0 2px 8px rgba(0,0,0,0.04)",
+        "boxShadow": "0 2px 8px rgba(0,0,0,0.4)",
         "border": f"1px solid {C_BORDER}",
     })
 
 def insight(texto):
     return html.P(texto, style={
-        "fontSize": "12px", "color": "#374151", "margin": "0 0 8px 0",
-        "padding": "10px 12px", "backgroundColor": "#FAFAFA",
+        "fontSize": "16px", "color": C_TEXT, "margin": "0 0 8px 0",
+        "padding": "10px 12px", "backgroundColor": C_BG,
         "border": f"1px solid {C_BORDER}",
         "borderLeft": f"3px solid {C_RED}",
         "borderRadius": "0 6px 6px 0",
@@ -191,7 +172,7 @@ def insight(texto):
 
 def section_label(text):
     return html.P(text, style={
-        "margin": "0 0 8px 0", "fontSize": "10px", "color": C_MUTED,
+        "margin": "0 0 8px 0", "fontSize": "14px", "color": C_MUTED,
         "fontWeight": "700", "textTransform": "uppercase", "letterSpacing": "0.8px",
     })
 
@@ -203,7 +184,7 @@ top_pilotos = (
 )
 fig_pilotos = px.bar(
     top_pilotos, x="vitorias", y="full_name", orientation="h",
-    title="Top 10 Pilotos — Vitórias (1990–2024)",
+    title="Top 10 Pilotos - Vitórias (1990–2024)",
     labels={"vitorias": "Vitórias", "full_name": ""},
     color="vitorias", color_continuous_scale=SCALE_QTD,
 )
@@ -217,7 +198,7 @@ top_equipes_d1 = (
 )
 fig_equipes = px.bar(
     top_equipes_d1, x="vitorias", y="constructor_name", orientation="h",
-    title="Top 10 Equipes — Vitórias (1990–2024)",
+    title="Top 10 Equipes - Vitórias (1990–2024)",
     labels={"vitorias": "Vitórias", "constructor_name": ""},
     color="vitorias", color_continuous_scale=SCALE_QTD,
 )
@@ -232,7 +213,7 @@ vit_decada = (
 )
 fig_decada = px.bar(
     vit_decada, x="decade", y="vitorias", color="constructor_name",
-    barmode="group", title="Vitórias por Década — Top 8 Equipes",
+    barmode="group", title="Vitórias por Década - Top 8 Equipes",
     labels={"decade": "Década", "vitorias": "Vitórias", "constructor_name": ""},
 )
 fig_decada.update_layout(legend_title="")
@@ -266,7 +247,6 @@ app.index_string = f"""<!DOCTYPE html>
         <title>F1 Analytics</title>
         {{%favicon%}}
         {{%css%}}
-        <style>{CUSTOM_CSS}</style>
     </head>
     <body>
         {{%app_entry%}}
@@ -275,6 +255,7 @@ app.index_string = f"""<!DOCTYPE html>
             {{%scripts%}}
             {{%renderer%}}
         </footer>
+        <style>{CUSTOM_CSS}</style>
     </body>
 </html>"""
 
@@ -286,22 +267,22 @@ nav_bar = html.Div([
             "backgroundColor": C_RED, "borderRadius": "50%", "marginRight": "10px",
         }),
         html.Span("F1", style={
-            "color": "#FFFFFF", "fontWeight": "800", "fontSize": "15px", "letterSpacing": "1px",
+            "color": "#FFFFFF", "fontWeight": "800", "fontSize": "20px", "letterSpacing": "1px",
         }),
         html.Span(" Dashboard", style={
             "color": "rgba(255,255,255,0.4)", "fontWeight": "400",
-            "fontSize": "13px", "marginLeft": "2px",
+            "fontSize": "17px", "marginLeft": "2px",
         }),
     ], style={"display": "flex", "alignItems": "center"}),
 
     html.Div([
-        html.Span(periodo, style={"color": "rgba(255,255,255,0.35)", "fontSize": "11px"}),
-        html.Span("  ·  ", style={"color": "rgba(255,255,255,0.15)", "fontSize": "11px"}),
-        html.Span(f"{n_corridas} corridas", style={"color": "rgba(255,255,255,0.35)", "fontSize": "11px"}),
-        html.Span("  ·  ", style={"color": "rgba(255,255,255,0.15)", "fontSize": "11px"}),
-        html.Span(f"{n_pilotos} pilotos", style={"color": "rgba(255,255,255,0.35)", "fontSize": "11px"}),
-        html.Span("  ·  ", style={"color": "rgba(255,255,255,0.15)", "fontSize": "11px"}),
-        html.Span(f"{n_equipes} equipes", style={"color": "rgba(255,255,255,0.35)", "fontSize": "11px"}),
+        html.Span(periodo, style={"color": "rgba(255,255,255,0.35)", "fontSize": "15px"}),
+        html.Span("  ·  ", style={"color": "rgba(255,255,255,0.15)", "fontSize": "15px"}),
+        html.Span(f"{n_corridas} corridas", style={"color": "rgba(255,255,255,0.35)", "fontSize": "15px"}),
+        html.Span("  ·  ", style={"color": "rgba(255,255,255,0.15)", "fontSize": "15px"}),
+        html.Span(f"{n_pilotos} pilotos", style={"color": "rgba(255,255,255,0.35)", "fontSize": "15px"}),
+        html.Span("  ·  ", style={"color": "rgba(255,255,255,0.15)", "fontSize": "15px"}),
+        html.Span(f"{n_equipes} equipes", style={"color": "rgba(255,255,255,0.35)", "fontSize": "15px"}),
     ], style={"display": "flex", "alignItems": "center"}),
 ], style={
     "display": "flex",
@@ -330,8 +311,31 @@ CONTENT_STYLE = {
     "boxSizing": "border-box",
     "minWidth": 0,
 }
-TAB_STYLE = {"backgroundColor": C_WHITE, "fontFamily": FONT}
-TAB_SELECTED = {"backgroundColor": C_WHITE, "fontFamily": FONT}
+TAB_STYLE = {
+    "backgroundColor": C_BG,
+    "color": C_MUTED,
+    "fontFamily": FONT,
+    "fontSize": "18px",
+    "fontWeight": "500",
+    "padding": "16px 32px",
+    "border": "none",
+    "borderBottom": f"2px solid transparent",
+    "borderRadius": "0",
+}
+TAB_SELECTED = {
+    "backgroundColor": C_BG,
+    "color": C_TEXT,
+    "fontFamily": FONT,
+    "fontSize": "18px",
+    "fontWeight": "700",
+    "padding": "16px 32px",
+    "border": "none",
+    "borderTop": "none",
+    "borderLeft": "none",
+    "borderRight": "none",
+    "borderBottom": f"3px solid {C_RED}",
+    "borderRadius": "0",
+}
 
 # Dashboard 1
 dashboard1 = html.Div([
@@ -360,14 +364,14 @@ dashboard2 = html.Div([
     html.Div([
         html.Div([
             html.H3("Filtros", style={
-                "margin": "0 0 20px 0", "color": "#1F2937",
-                "fontSize": "11px", "fontWeight": "700",
+                "margin": "0 0 20px 0", "color": C_TEXT,
+                "fontSize": "17px", "fontWeight": "700",
                 "letterSpacing": "1.2px", "textTransform": "uppercase",
             }),
             section_label("Período"),
             dcc.RangeSlider(
                 id="slider-anos", min=1990, max=2024, step=1, value=[1990, 2024],
-                marks={y: {"label": str(y), "style": {"fontSize": "10px", "color": C_MUTED}}
+                marks={y: {"label": str(y), "style": {"fontSize": "14px", "color": C_TEXT}}
                        for y in range(1990, 2025, 5)},
                 tooltip={"placement": "bottom", "always_visible": False},
             ),
@@ -378,12 +382,16 @@ dashboard2 = html.Div([
                 options=[{"label": eq, "value": eq} for eq in todas_equipes],
                 value=top5_default, multi=True,
                 placeholder="Selecione equipes...",
-                style={"fontSize": "12px", "marginTop": "4px"},
+                style={
+                    "fontSize": "16px", "marginTop": "4px",
+                    "backgroundColor": C_DARK, "color": C_TEXT,
+                    "border": f"1px solid {C_BORDER}",
+                },
             ),
             html.Hr(style={"margin": "22px 0 18px 0", "borderColor": C_BORDER}),
             html.H4("Achados do período", style={
-                "margin": "0 0 14px 0", "color": "#1F2937",
-                "fontSize": "11px", "fontWeight": "700",
+                "margin": "0 0 14px 0", "color": C_TEXT,
+                "fontSize": "17px", "fontWeight": "700",
                 "letterSpacing": "1.2px", "textTransform": "uppercase",
             }),
             html.Div(id="d2-achados"),
@@ -410,6 +418,7 @@ app.layout = html.Div([
     nav_bar,
     dcc.Tabs(
         value="tab-1",
+        colors={"border": C_BORDER, "primary": C_RED, "background": C_BG},
         children=[
             dcc.Tab(label="Visão Geral", value="tab-1",
                     children=[dashboard1],
@@ -418,10 +427,9 @@ app.layout = html.Div([
                     children=[dashboard2],
                     style=TAB_STYLE, selected_style=TAB_SELECTED),
         ],
-        style={"backgroundColor": C_WHITE},
+        style={"backgroundColor": C_BG, "borderBottom": f"1px solid {C_BORDER}"},
     ),
 ], style={"fontFamily": FONT, "backgroundColor": C_BG, "minHeight": "100vh"})
-
 
 # Callback
 @app.callback(
@@ -449,7 +457,7 @@ def atualizar_dashboard2(anos, equipes):
     )
     fig1 = px.line(
         vit_ano, x="year", y="vitorias", color="constructor_name", markers=True,
-        title=f"Vitórias por Temporada — {ano_min}–{ano_max}",
+        title=f"Vitórias por Temporada - {ano_min}–{ano_max}",
         labels={"year": "Temporada", "vitorias": "Vitórias", "constructor_name": ""},
     )
     fig1.update_layout(legend_title="")
@@ -479,7 +487,7 @@ def atualizar_dashboard2(anos, equipes):
     )
     fig3 = px.bar(
         vit_eq, x="constructor_name", y="vitorias",
-        title=f"Vitórias por Equipe — {ano_min}–{ano_max}",
+        title=f"Vitórias por Equipe - {ano_min}–{ano_max}",
         labels={"constructor_name": "", "vitorias": "Vitórias"},
         color="vitorias", color_continuous_scale=SCALE_QTD,
     )
@@ -493,7 +501,7 @@ def atualizar_dashboard2(anos, equipes):
     )
     fig4 = px.bar(
         vit_idade, x="age_at_race", y="vitorias",
-        title=f"Vitórias por Idade — {ano_min}–{ano_max}",
+        title=f"Vitórias por Idade - {ano_min}–{ano_max}",
         labels={"age_at_race": "Idade", "vitorias": "Vitórias"},
         color="vitorias", color_continuous_scale=SCALE_QTD,
     )
@@ -527,18 +535,18 @@ def atualizar_dashboard2(anos, equipes):
         x=labels_corr, y=labels_corr,
         color_continuous_scale="RdBu_r",
         zmin=-1, zmax=1,
-        title=f"Correlação entre Variáveis — {ano_min}–{ano_max}",
+        title=f"Correlação entre Variáveis - {ano_min}–{ano_max}",
         text_auto=True,
     )
     apply_chart_style(fig6)
 
     lider_eq = vit_eq.iloc[0] if not vit_eq.empty else None
-    pico_idade = int(vit_idade.loc[vit_idade["vitorias"].idxmax(), "age_at_race"]) if not vit_idade.empty else "—"
+    pico_idade = int(vit_idade.loc[vit_idade["vitorias"].idxmax(), "age_at_race"]) if not vit_idade.empty else "-"
 
     achados = [
-        insight(f"Líder: {lider_eq['constructor_name']} — {int(lider_eq['vitorias'])} vitórias") if lider_eq is not None else "",
-        insight(f"Correlação grid → posição: r = {corr_grid}"),
-        insight(f"Correlação idade → pontos: r = {corr_idade}"),
+        insight(f"Líder: {lider_eq['constructor_name']} - {int(lider_eq['vitorias'])} vitórias") if lider_eq is not None else "",
+        insight(f"Correlação grid - posição: r = {corr_grid}"),
+        insight(f"Correlação idade - pontos: r = {corr_idade}"),
         insight(f"Idade com mais vitórias: {pico_idade} anos"),
     ]
 
